@@ -1,0 +1,134 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "application_info": {
+            "type": "object",
+            "properties": {
+                "erp_acronym": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                },
+                "path_id": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9]{20}$"
+                },
+                "contact_info": {
+                    "type": "object",
+                    "properties": {
+                        "email": {
+                            "type": "string",
+                            "format": "email"
+                        },
+                        "slack": {
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-]*$"
+                        },
+                        "owner": {
+                            "type": "string",
+                            "pattern": "^[a-zA-Z,\\s]*$"
+                        }
+                    },
+                    "required": ["email", "owner"]
+                }
+            },
+            "required": ["erp_acronym", "path_id", "contact_info"]
+        },
+        "instance_spec": {
+            "type": "object",
+            "properties": {
+                "cache_name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z][a-zA-Z0-9\\-]*$",
+                    "minLength": 6,
+                    "maxLength": 63
+                },
+                "memory": {
+                    "type": "string",
+                    "pattern": "^[0-9]+(MG|GB)$"
+                },
+                "cache_instance_type": {
+                    "type": "string",
+                    "enum": ["cluster", "standalone", "serverless"],
+                    "default": "serverless"
+                },
+                "cloud_type": {
+                    "type": "string",
+                    "enum": ["on_prem", "azure"]
+                },
+                "region": {
+                    "type": "string"
+                },
+                "tier": {
+                    "type": "integer",
+                    "enum": [1, 2, 3, 4]
+                },
+                "tags": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^[a-zA-Z0-9\\-_]+$": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9\\s:,.\\-]*$"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "required": ["cache_name", "memory", "cache_instance_type", "cloud_type", "region", "tier"],
+            "if": {
+                "properties": {
+                    "cloud_type": { "const": "azure" }
+                }
+            },
+            "then": {
+                "properties": {
+                    "region": {
+                        "enum": ["East US", "West US"]
+                    }
+                }
+            },
+            "else": {
+                "properties": {
+                    "region": {
+                        "enum": ["Denver", "Fredricksburg"]
+                    }
+                }
+            }
+        },
+        "security_groups": {
+            "type": "object",
+            "properties": {
+                "cache_instance": {
+                    "type": "object",
+                    "properties": {
+                        "admin": {
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-]*$"
+                        },
+                        "reader": {
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-]*$"
+                        }
+                    },
+                    "required": ["admin", "reader"]
+                },
+                "cache_data": {
+                    "type": "object",
+                    "properties": {
+                        "reader": {
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-]*$"
+                        },
+                        "contributer": {
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\-]*$"
+                        }
+                    },
+                    "required": ["reader", "contributer"]
+                }
+            },
+            "required": ["cache_instance", "cache_data"]
+        }
+    },
+    "required": ["application_info", "instance_spec", "security_groups"]
+}
